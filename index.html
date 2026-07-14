@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trajetória — Bacharelado em Enfermagem · UFBA</title>
+<style>
+  :root{
+    --ink:#16302E;
+    --ink-soft:#3C5451;
+    --paper:#E9EDE7;
+    --paper-deep:#DEE4DA;
+    --card:#FFFFFF;
+    --line:#C7D0C6;
+    --line-soft:#D9E0D4;
+    --completed:#3F7A5A;
+    --completed-bg:#E1EEE3;
+    --completed-bg-strong:#CFE4D4;
+    --locked:#8B958A;
+    --locked-bg:#F1F2EE;
+    --attention:#A6444C;
+    --attention-bg:#F5E4E1;
+    --amber:#B9832E;
+    --amber-bg:#F6EBD8;
+    --monitor-bg:#122321;
+    --monitor-green:#6FDC9A;
+    --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Times New Roman', serif;
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Header ---------- */
+  .masthead{
+    padding:28px 28px 18px;
+    border-bottom:1px solid var(--line);
+    background:
+      repeating-linear-gradient(180deg, transparent 0, transparent 27px, rgba(60,84,81,0.05) 27px, rgba(60,84,81,0.05) 28px),
+      var(--paper);
+  }
+  .masthead-top{
+    display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap;
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:400;
+    font-size:32px;
+    margin:0;
+    color:var(--ink);
+    letter-spacing:.2px;
+  }
+  h1 em{ font-style:italic; color:var(--ink-soft); }
+  .meta-line{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    font-family:var(--font-body);
+  }
+
+  /* ---------- Vital readout ---------- */
+  .vitals{
+    display:flex;
+    align-items:stretch;
+    gap:0;
+    background:var(--monitor-bg);
+    border-radius:10px;
+    overflow:hidden;
+    min-width:340px;
+    box-shadow:0 6px 18px rgba(18,35,33,0.25);
+  }
+  .vitals-readout{
+    padding:14px 20px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    min-width:120px;
+    border-right:1px solid rgba(111,220,154,0.18);
+  }
+  .vitals-readout .num{
+    font-family:var(--font-mono);
+    font-size:34px;
+    color:var(--monitor-green);
+    line-height:1;
+    text-shadow:0 0 10px rgba(111,220,154,0.45);
+  }
+  .vitals-readout .lbl{
+    font-family:var(--font-mono);
+    font-size:9.5px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:rgba(111,220,154,0.65);
+    margin-top:5px;
+  }
+  .vitals-trace{
+    flex:1;
+    display:flex;
+    align-items:center;
+    padding:0 10px;
+    min-width:220px;
+  }
+  .vitals-trace svg{ width:100%; height:64px; display:block; }
+  .spike-dot{ cursor:pointer; }
+  .spike-label{
+    font-family:var(--font-mono);
+    font-size:8.5px;
+    fill:rgba(111,220,154,0.55);
+  }
+
+  /* ---------- Controls ---------- */
+  .toolbar{
+    display:flex; align-items:center; gap:14px; margin-top:18px; flex-wrap:wrap;
+  }
+  .legend{
+    display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);
+  }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .swatch{ width:11px; height:11px; border-radius:3px; display:inline-block; border:1px solid rgba(0,0,0,0.08); }
+  .sw-done{ background:var(--completed); }
+  .sw-open{ background:var(--card); border-color:var(--amber); }
+  .sw-locked{ background:var(--locked-bg); border-color:var(--locked); }
+
+  .btn-reset{
+    margin-left:auto;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    background:transparent;
+    border:1px solid var(--attention);
+    color:var(--attention);
+    padding:7px 12px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .btn-reset:hover{ background:var(--attention-bg); }
+
+  /* ---------- Board ---------- */
+  .board{
+    display:flex;
+    gap:0;
+    overflow-x:auto;
+    padding:22px 28px 40px;
+    align-items:flex-start;
+  }
+  .semester{
+    flex:0 0 240px;
+    border-right:1px dashed var(--line);
+    padding:0 16px;
+    min-height:100%;
+  }
+  .semester:last-child{ border-right:none; }
+  .sem-head{
+    position:sticky; top:0;
+    padding-bottom:10px; margin-bottom:14px;
+    border-bottom:2px solid var(--ink);
+  }
+  .sem-num{
+    font-family:var(--font-display);
+    font-size:22px;
+    color:var(--ink);
+  }
+  .sem-sub{
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--ink-soft);
+    letter-spacing:.04em;
+    margin-top:2px;
+  }
+  .sem-bar-track{
+    height:4px; background:var(--line-soft); border-radius:2px; margin-top:8px; overflow:hidden;
+  }
+  .sem-bar-fill{ height:100%; background:var(--completed); border-radius:2px; transition:width .25s ease; }
+
+  /* ---------- Card ---------- */
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .card.state-done{ background:var(--completed-bg); border-color:var(--completed); }
+  .card.state-locked{ background:var(--locked-bg); }
+  .card.state-open{ border-color:var(--amber); }
+
+  .card-row{
+    display:flex; align-items:flex-start; gap:9px;
+    padding:10px 11px;
+    cursor:pointer;
+  }
+  .card.state-locked .card-row{ cursor:not-allowed; }
+
+  .check{
+    flex:0 0 17px; width:17px; height:17px; border-radius:5px;
+    border:1.6px solid var(--locked);
+    margin-top:1px;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff;
+  }
+  .card.state-open .check{ border-color:var(--amber); }
+  .card.state-done .check{ background:var(--completed); border-color:var(--completed); }
+  .card.state-done .check::after{
+    content:"✓"; color:#fff; font-size:11px; line-height:1;
+  }
+  .card.state-locked .check{ background:var(--locked-bg); }
+  .card.state-locked .check::after{ content:"🔒"; font-size:8px; }
+
+  .card-text{ flex:1; min-width:0; }
+  .card-code{
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--ink-soft);
+    letter-spacing:.03em;
+  }
+  .card.state-done .card-code{ color:var(--completed); }
+  .card-name{
+    font-size:12.5px;
+    line-height:1.32;
+    color:var(--ink);
+    margin-top:2px;
+  }
+  .card.state-locked .card-name{ color:var(--locked); }
+  .card-ch{
+    font-family:var(--font-mono);
+    font-size:9.5px;
+    color:var(--ink-soft);
+    margin-top:3px;
+  }
+
+  .prereq-toggle{
+    font-family:var(--font-mono);
+    font-size:9px;
+    color:var(--ink-soft);
+    background:none; border:none;
+    padding:0 11px 8px;
+    cursor:pointer;
+    text-align:left;
+    width:100%;
+  }
+  .prereq-panel{
+    padding:0 11px 10px;
+    font-size:11px;
+    border-top:1px solid var(--line-soft);
+    margin-top:0;
+    padding-top:8px;
+  }
+  .prereq-panel ul{ margin:4px 0 0; padding-left:16px; }
+  .prereq-panel li{ margin-bottom:2px; }
+  .prereq-panel li.met{ color:var(--completed); }
+  .prereq-panel li.unmet{ color:var(--attention); }
+  .prereq-empty{ color:var(--ink-soft); font-style:italic; }
+
+  .slot-card .card-name{ font-style:italic; }
+
+  /* ---------- Elective catalogue ---------- */
+  .catalog-wrap{ padding:0 28px 60px; }
+  details.catalog{
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--card);
+  }
+  details.catalog > summary{
+    list-style:none;
+    cursor:pointer;
+    padding:16px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    font-family:var(--font-display);
+    font-size:18px;
+  }
+  details.catalog > summary::-webkit-details-marker{ display:none; }
+  .catalog-hint{
+    font-family:var(--font-body); font-size:12px; color:var(--ink-soft); font-style:normal;
+  }
+  .catalog-body{ padding:0 20px 20px; }
+  .catalog-slots{
+    display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;
+  }
+  .slot-pill{
+    font-family:var(--font-mono); font-size:10.5px;
+    padding:5px 10px; border-radius:20px;
+    border:1px solid var(--line);
+    background:var(--paper);
+  }
+  .slot-pill.filled{ border-color:var(--completed); background:var(--completed-bg); color:var(--completed); }
+  .elective-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:8px;
+  }
+  .elective{
+    border:1px solid var(--line-soft); border-radius:8px; padding:9px 10px;
+    background:var(--paper);
+    font-size:11.5px;
+  }
+  .elective.chosen{ border-color:var(--completed); background:var(--completed-bg); }
+  .elective.blocked{ opacity:.55; }
+  .elective-top{ display:flex; justify-content:space-between; gap:6px; align-items:baseline; }
+  .elective-code{ font-family:var(--font-mono); font-size:9.5px; color:var(--ink-soft); }
+  .elective-ch{ font-family:var(--font-mono); font-size:9px; color:var(--ink-soft); }
+  .elective-name{ margin-top:3px; line-height:1.3; }
+  .elective-pre{ margin-top:5px; font-size:9.5px; }
+  .elective-pre.met{ color:var(--completed); }
+  .elective-pre.unmet{ color:var(--attention); }
+  .elective-btn{
+    margin-top:7px; width:100%;
+    font-family:var(--font-mono); font-size:9.5px; letter-spacing:.03em; text-transform:uppercase;
+    padding:5px 0; border-radius:5px; border:1px solid var(--ink-soft); background:#fff; cursor:pointer;
+  }
+  .elective-btn.on{ background:var(--completed); border-color:var(--completed); color:#fff; }
+  .elective-btn:disabled{ cursor:not-allowed; opacity:.5; }
+
+  footer{
+    padding:18px 28px 40px; font-size:11px; color:var(--ink-soft); font-family:var(--font-mono);
+  }
+
+  @media (max-width:720px){
+    h1{ font-size:24px; }
+    .board{ padding:16px; }
+    .semester{ flex:0 0 210px; }
+    .masthead{ padding:20px 18px 14px; }
+    .catalog-wrap{ padding:0 18px 50px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-top">
+    <div>
+      <p class="eyebrow">Prontuário acadêmico · UFBA</p>
+      <h1>Bacharelado em <em>Enfermagem</em></h1>
+      <p class="meta-line">Currículo 2024‑1 · Duração média 6 anos · Carga horária total registrada: <span id="totalHoursLabel">—</span> h</p>
+    </div>
+    <div class="vitals">
+      <div class="vitals-readout">
+        <div class="num" id="pctReadout">0%</div>
+        <div class="lbl">Taxa de conclusão</div>
+      </div>
+      <div class="vitals-trace">
+        <svg id="traceSvg" viewBox="0 0 620 64" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="legend">
+      <span><i class="swatch sw-done"></i> Concluída</span>
+      <span><i class="swatch sw-open"></i> Disponível</span>
+      <span><i class="swatch sw-locked"></i> Bloqueada (pré‑requisito pendente)</span>
+    </div>
+    <button class="btn-reset" id="resetBtn">Zerar progresso</button>
+  </div>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="catalog-wrap">
+  <details class="catalog" id="catalogDetails">
+    <summary>
+      Catálogo de optativas
+      <span class="catalog-hint">43 opções · são necessárias 4 (240h) ao longo do curso</span>
+    </summary>
+    <div class="catalog-body">
+      <p style="font-size:12px;color:var(--ink-soft);margin-top:0;">
+        Cada vaga de <strong>Optativa</strong> na grade vale 60h, independente da carga horária real da disciplina escolhida.
+        Escolha uma disciplina abaixo para ocupar a próxima vaga livre.
+      </p>
+      <div class="catalog-slots" id="slotPills"></div>
+      <div class="elective-grid" id="electiveGrid"></div>
+    </div>
+  </details>
+</div>
+
+<footer>Seu progresso é salvo automaticamente neste navegador. Dados do próprio curso — verifique sempre a grade oficial da UFBA antes de matrícula.</footer>
+
+<script>
+/* ============================= DADOS DA MATRIZ ============================= */
+// OB = obrigatória, LV = componente livre (vaga genérica), OP = vaga de optativa (genérica)
+const SEMESTERS = [
+  { n:1, week:15, items:[
+    {code:'IMSF37', name:'História e Cultura no Processo Saúde e Doença', ch:75, type:'OB', pre:[]},
+    {code:'IMSF38', name:'A Enfermagem e a Organização do Sistema de Saúde', ch:60, type:'OB', pre:[]},
+    {code:'IMSF39', name:'Educação em Saúde na Práxis de Enfermagem', ch:45, type:'OB', pre:[]},
+    {code:'IMSF40', name:'Metodologia Científica na Enfermagem', ch:45, type:'OB', pre:[]},
+    {code:'IMSF41', name:'Extensão na Enfermagem, Saúde e Sociedade I', ch:30, type:'OB', pre:[]},
+  ]},
+  { n:2, week:22.06, items:[
+    {code:'IMSF42', name:'Aspectos Biopsicossociais em Modelos Assistenciais', ch:90, type:'OB', pre:[]},
+    {code:'IMSF43', name:'Bases no Processo de Investigação em Enfermagem', ch:90, type:'OB', pre:['IMSF40']},
+    {code:'IMSF44', name:'Gerenciamento da Enfermagem', ch:45, type:'OB', pre:[]},
+    {code:'IMSF45', name:'Extensão na Enfermagem, Saúde e Sociedade II', ch:30, type:'OB', pre:[]},
+    {code:'LIV060', name:'Componente Curricular Livre', ch:60, type:'LV', pre:[]},
+    {code:'OPT006', name:'Disciplina Optativa', ch:60, type:'OP', pre:[]},
+  ]},
+  { n:3, week:26.47, items:[
+    {code:'IMSF46', name:'Bases dos Processos Bioquímicos, Celulares e Moleculares', ch:150, type:'OB', pre:[]},
+    {code:'IMSF47', name:'Biomorfofuncional', ch:150, type:'OB', pre:[]},
+    {code:'IMSF48', name:'Extensão nos Processos Biopsicossociais do Cuidado I', ch:30, type:'OB', pre:[]},
+    {code:'LIVB60', name:'Componente Curricular Livre', ch:60, type:'LV', pre:[]},
+    {code:'OPT061', name:'Disciplina Optativa', ch:60, type:'OP', pre:[]},
+  ]},
+  { n:4, week:22.94, items:[
+    {code:'IMSF49', name:'Bases Fundamentais para o Cuidado em Enfermagem', ch:135, type:'OB', pre:[]},
+    {code:'IMSF50', name:'Mecanismo de Agressão e Defesa na Promoção da Saúde', ch:135, type:'OB', pre:['IMSF46']},
+    {code:'LIVC60', name:'Componente Curricular Livre', ch:60, type:'LV', pre:[]},
+    {code:'OPT066', name:'Disciplina Optativa', ch:60, type:'OP', pre:[]},
+  ]},
+  { n:5, week:22.94, items:[
+    {code:'IMSF51', name:'Bases Teóricas e Metodológicas do Cuidar', ch:165, type:'OB', pre:['IMSF47','IMSF49']},
+    {code:'IMSF52', name:'Processos Patológicos na Gênese e Tratamento de Feridas', ch:60, type:'OB', pre:[]},
+    {code:'IMSF53', name:'Trabalho de Conclusão de Curso I', ch:45, type:'OB', pre:[]},
+    {code:'LIVD60', name:'Componente Curricular Livre', ch:60, type:'LV', pre:[]},
+    {code:'OPTB06', name:'Disciplina Optativa', ch:60, type:'OP', pre:[]},
+  ]},
+  { n:6, week:23.82, items:[
+    {code:'IMSF54', name:'Cuidados nos Agravos de Saúde Prevalentes no Adulto', ch:135, type:'OB', pre:['IMSF51']},
+    {code:'IMSF55', name:'Cuidados de Enfermagem na Saúde Coletiva', ch:180, type:'OB', pre:['IMSF51']},
+    {code:'IMSF56', name:'Cuidados de Enfermagem no Processo de Envelhecimento', ch:60, type:'OB', pre:['IMSF51']},
+    {code:'IMSF57', name:'Farmacologia Aplicada aos Agravos no Adulto e Idoso', ch:30, type:'OB', pre:[]},
+  ]},
+  { n:7, week:24.71, items:[
+    {code:'IMSF58', name:'Cuidados nas Situações Críticas do Adulto e Idoso', ch:150, type:'OB', pre:['IMSF51']},
+    {code:'IMSF59', name:'Cuidados de Enfermagem no Período Perioperatório e CME', ch:60, type:'OB', pre:['IMSF51']},
+    {code:'IMSF60', name:'Cuidados na Gestação, Nascimento e com a Mulher', ch:150, type:'OB', pre:['IMSF51']},
+    {code:'LIVF60', name:'Componente Curricular Livre', ch:60, type:'LV', pre:[]},
+  ]},
+  { n:8, week:20.29, items:[
+    {code:'IMSA77', name:'Trabalho de Conclusão de Curso II', ch:30, type:'OB', pre:['IMSF53']},
+    {code:'IMSF61', name:'Cuidados de Enfermagem na Infância e na Adolescência', ch:135, type:'OB', pre:['IMSF51']},
+    {code:'IMSF62', name:'Cuidados de Enfermagem em Indivíduos em Sofrimento Mental', ch:90, type:'OB', pre:[]},
+    {code:'IMSF63', name:'Política, Planejamento e Gestão na Enfermagem Contemporânea', ch:90, type:'OB', pre:['IMSF44']},
+  ]},
+  { n:9, week:24.71, items:[
+    {code:'IMSF64', name:'Estágio Supervisionado em Atenção Primária', ch:420, type:'OB', pre:
+      ['IMSF37','IMSF38','IMSF39','IMSF40','IMSF41','IMSF42','IMSF43','IMSF44','IMSF45','IMSF46','IMSF47','IMSF48','IMSF49','IMSF50','IMSF51','IMSF52','IMSF53','IMSF54','IMSF55','IMSF56','IMSF57','IMSF58','IMSF59','IMSF60','IMSF61','IMSF62','IMSF63']},
+  ]},
+  { n:10, week:24.71, items:[
+    {code:'IMSF65', name:'Estágio Supervisionado em Atenção Hospitalar', ch:420, type:'OB', pre:
+      ['IMSF37','IMSF38','IMSF39','IMSF40','IMSF41','IMSF42','IMSF43','IMSF44','IMSF45','IMSF46','IMSF47','IMSF48','IMSF49','IMSF50','IMSF51','IMSF52','IMSF53','IMSF54','IMSF55','IMSF56','IMSF57','IMSF58','IMSF59','IMSF60','IMSF61','IMSF62','IMSF63']},
+  ]},
+];
+
+// Catálogo de optativas (não entram na grade fixa; ocupam vagas OP quando escolhidas)
+const ELECTIVES = [
+  {code:'ENFD35', name:'Trabalho em Saúde, Erro e Segurança do Paciente', ch:60, pre:[]},
+  {code:'IMS007', name:'Direitos Humanos e Saúde', ch:60, pre:[]},
+  {code:'IMS026', name:'Estudo de Células-Tronco', ch:30, pre:[]},
+  {code:'IMS070', name:'Políticas de Saúde', ch:60, pre:[]},
+  {code:'IMS110', name:'Saneamento e Saúde', ch:45, pre:[]},
+  {code:'IMS150', name:'Genética Humana e Médica', ch:60, pre:[]},
+  {code:'IMS158', name:'Gerenciamento de Resíduos', ch:60, pre:[]},
+  {code:'IMS177', name:'Fisiopatologia e Terapêutica', ch:60, pre:[]},
+  {code:'IMS192', name:'Tópicos Especiais em Genética', ch:60, pre:[]},
+  {code:'IMS193', name:'Tópicos Especiais em Microbiologia', ch:60, pre:[]},
+  {code:'IMS194', name:'Tópicos Especiais em Imunologia', ch:60, pre:[]},
+  {code:'IMS268', name:'Libras – Língua Brasileira de Sinais', ch:30, pre:[]},
+  {code:'IMSA01', name:'Imaginologia Básica', ch:60, pre:[]},
+  {code:'IMSA51', name:'Informática Aplicada à Saúde com Epi-Info', ch:60, pre:[]},
+  {code:'IMSA98', name:'Processos Gerais em Laserterapia', ch:60, pre:[]},
+  {code:'IMSB06', name:'ACCS: Cinema e Literatura — Estratégias de Saúde e Adesão ao Cuidado', ch:60, pre:[]},
+  {code:'IMSB29', name:'Subjetividade, História e Cultura', ch:60, pre:[]},
+  {code:'IMSB69', name:'Imunopatologia Aplicada', ch:60, pre:[]},
+  {code:'IMSB70', name:'Animais Peçonhentos', ch:60, pre:[]},
+  {code:'IMSB75', name:'Educação Ambiental', ch:30, pre:[]},
+  {code:'IMSB79', name:'Patologia Especial', ch:60, pre:[]},
+  {code:'IMSC40', name:'Genética do Câncer', ch:30, pre:[]},
+  {code:'IMSC50', name:'Sistemas de Informação em Saúde', ch:30, pre:[]},
+  {code:'IMSC80', name:'Análise e Interpretação de Exames Laboratoriais', ch:60, pre:[]},
+  {code:'IMSC86', name:'ACCS — Reabilitação Cognitiva para Idosos: Programa e Possibilidades de Intervenção', ch:60, pre:[]},
+  {code:'IMSC99', name:'Saúde e Trabalho', ch:60, pre:[]},
+  {code:'IMSD17', name:'Clínica Ampliada e Saúde Mental', ch:60, pre:['IMSF62']},
+  {code:'IMSD20', name:'Estado, Sociedade e Saúde', ch:60, pre:[]},
+  {code:'IMSE08', name:'DCS — O Método Clínico Centrado na Pessoa', ch:60, pre:[]},
+  {code:'IMSE12', name:'DCS — Humanização, Parto e Direito à Maternidade', ch:60, pre:[]},
+  {code:'IMSE28', name:'DCS — Saúde Mental, Dependência Química e Redução de Danos', ch:90, pre:[]},
+  {code:'IMSE33', name:'DCS — Saúde do Trabalhador e Ecologia Humana', ch:60, pre:[]},
+  {code:'IMSE34', name:'DCS — Vigilância do Óbito Materno, Infantil e Fetal', ch:60, pre:[]},
+  {code:'IMSE71', name:'Introdução à Antropologia Forense', ch:60, pre:[]},
+  {code:'IMSE72', name:'Ciência, Sociedade e Ficção', ch:30, pre:[]},
+  {code:'IMSF10', name:'Noções de Primeiros Socorros', ch:30, pre:[]},
+  {code:'IMSF23', name:'Cultura Afro-Brasileira', ch:60, pre:[]},
+  {code:'IMSF30', name:'Tópicos Especiais em Sistematização da Assistência de Enfermagem', ch:60, pre:[]},
+  {code:'IMSF66', name:'Neurobiologia do Aprendizado e da Memória', ch:30, pre:[]},
+  {code:'IMSF67', name:'Cuidados Paliativos no Contexto de Final de Vida', ch:45, pre:[]},
+  {code:'IMSF68', name:'Cuidados à Pessoa com Diabetes e Hipertensão', ch:60, pre:[]},
+  {code:'IMSF69', name:'Pensamento Crítico e Clínico no Contexto da SAE', ch:60, pre:['IMSF51']},
+  {code:'IMSF70', name:'Saúde Ambiental Aplicada à Enfermagem', ch:30, pre:[]},
+];
+
+/* ============================= ESTADO ============================= */
+const ALL_ITEMS = SEMESTERS.flatMap(s => s.items);
+const OP_SLOTS = ALL_ITEMS.filter(i => i.type === 'OP').map(i => i.code);
+const CODE_TO_NAME = {};
+ALL_ITEMS.forEach(i => CODE_TO_NAME[i.code] = i.name);
+ELECTIVES.forEach(i => CODE_TO_NAME[i.code] = i.name);
+
+const TOTAL_CH = ALL_ITEMS.reduce((s,i) => s + i.ch, 0);
+document.getElementById('totalHoursLabel').textContent = TOTAL_CH;
+
+let completed = new Set();          // códigos concluídos (OB, LV, e vagas OP quando preenchidas)
+let opAssignment = {};              // { 'OPT006': 'IMSD17' | null, ... }
+OP_SLOTS.forEach(s => opAssignment[s] = null);
+
+const STORAGE_KEY = 'nursing-curriculum-progress';
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      completed = new Set(parsed.completed || []);
+      opAssignment = Object.assign({}, opAssignment, parsed.opAssignment || {});
+    }
+  }catch(e){
+    // sem estado salvo ainda — segue com valores padrão
+  }
+  render();
+}
+
+async function saveState(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify({
+      completed:[...completed],
+      opAssignment
+    }), false);
+  }catch(e){
+    console.error('Falha ao salvar progresso', e);
+  }
+}
+
+function isUnlocked(item){
+  if(item.type !== 'OB') return true; // LV e vagas OP genéricas não têm pré-requisito
+  return item.pre.every(p => completed.has(p));
+}
+
+function toggleItem(item){
+  if(item.type === 'OP'){
+    // vaga de optativa: só pode ser marcada/desmarcada via catálogo (precisa saber qual disciplina)
+    document.getElementById('catalogDetails').open = true;
+    document.getElementById('catalogDetails').scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  const unlocked = isUnlocked(item);
+  if(completed.has(item.code)){
+    // desmarcar em cascata: qualquer OB concluída que dependia disso também desbloqueia (fica pendente)
+    completed.delete(item.code);
+    let changed = true;
+    while(changed){
+      changed = false;
+      for(const it of ALL_ITEMS){
+        if(it.type==='OB' && completed.has(it.code) && !it.pre.every(p=>completed.has(p))){
+          completed.delete(it.code);
+          changed = true;
+        }
+      }
+    }
+  }else if(unlocked){
+    completed.add(item.code);
+  }else{
+    return; // bloqueada — nada a fazer (o painel de pré-requisitos já explica o motivo)
+  }
+  saveState();
+  render();
+}
+
+function assignElective(elCode){
+  const freeSlot = OP_SLOTS.find(s => !opAssignment[s]);
+  if(!freeSlot) return;
+  opAssignment[freeSlot] = elCode;
+  completed.add(freeSlot);
+  saveState();
+  render();
+}
+
+function unassignElective(elCode){
+  const slot = Object.keys(opAssignment).find(s => opAssignment[s] === elCode);
+  if(!slot) return;
+  opAssignment[slot] = null;
+  completed.delete(slot);
+  saveState();
+  render();
+}
+
+/* ============================= RENDER ============================= */
+function cardHTML(item){
+  const unlocked = isUnlocked(item);
+  const done = completed.has(item.code);
+  let stateClass = done ? 'state-done' : (unlocked ? 'state-open' : 'state-locked');
+  const slotClass = (item.type !== 'OB') ? 'slot-card' : '';
+
+  let prereqInner = '';
+  if(item.type === 'OB'){
+    if(item.pre.length === 0){
+      prereqInner = '<span class="prereq-empty">Nenhum pré-requisito</span>';
+    }else{
+      prereqInner = '<ul>' + item.pre.map(p => {
+        const met = completed.has(p);
+        return `<li class="${met?'met':'unmet'}">${met?'✓':'○'} ${p} — ${CODE_TO_NAME[p]||p}</li>`;
+      }).join('') + '</ul>';
+    }
+  }
+
+  let label = item.name;
+  if(item.type === 'OP' && opAssignment[item.code]){
+    label = 'Optativa: ' + CODE_TO_NAME[opAssignment[item.code]];
+  }
+
+  const detailsBlock = item.type === 'OB' ? `
+    <details>
+      <summary class="prereq-toggle">Pré-requisitos ›</summary>
+      <div class="prereq-panel">${prereqInner}</div>
+    </details>` : '';
+
+  return `
+  <div class="card ${stateClass} ${slotClass}" data-code="${item.code}">
+    <div class="card-row" onclick="toggleItem(ALL_ITEMS.find(i=>i.code==='${item.code}'))">
+      <div class="check"></div>
+      <div class="card-text">
+        <div class="card-code">${item.code} · ${item.type}</div>
+        <div class="card-name">${label}</div>
+        <div class="card-ch">${item.ch}h</div>
+      </div>
+    </div>
+    ${detailsBlock}
+  </div>`;
+}
+
+function renderBoard(){
+  const board = document.getElementById('board');
+  board.innerHTML = SEMESTERS.map(sem => {
+    const totalCh = sem.items.reduce((s,i)=>s+i.ch,0);
+    const doneCh = sem.items.reduce((s,i)=> s + (completed.has(i.code)? i.ch:0),0);
+    const pct = totalCh ? Math.round(doneCh/totalCh*100) : 0;
+    return `
+    <div class="semester">
+      <div class="sem-head">
+        <div class="sem-num">${sem.n}º</div>
+        <div class="sem-sub">${sem.week}h/semana · ${totalCh}h</div>
+        <div class="sem-bar-track"><div class="sem-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      ${sem.items.map(cardHTML).join('')}
+    </div>`;
+  }).join('');
+}
+
+function renderVitals(){
+  const doneCh = [...completed].reduce((s,code)=>{
+    const it = ALL_ITEMS.find(i=>i.code===code);
+    return s + (it? it.ch : 0);
+  },0);
+  const pct = Math.round(doneCh/TOTAL_CH*100);
+  document.getElementById('pctReadout').textContent = pct + '%';
+
+  // trace: um "pico" por semestre, altura proporcional ao % concluído daquele semestre
+  const svg = document.getElementById('traceSvg');
+  const w = 620, h = 64, n = SEMESTERS.length;
+  const step = w / n;
+  let d = `M0 ${h-8}`;
+  let dots = '';
+  SEMESTERS.forEach((sem, idx)=>{
+    const totalCh = sem.items.reduce((s,i)=>s+i.ch,0);
+    const doneChSem = sem.items.reduce((s,i)=> s + (completed.has(i.code)? i.ch:0),0);
+    const semPct = totalCh ? doneChSem/totalCh : 0;
+    const x0 = idx*step;
+    const xPeak = x0 + step*0.5;
+    const x1 = x0 + step;
+    const baseY = h-8;
+    const peakY = baseY - semPct*(h-20);
+    d += ` L${x0+step*0.2} ${baseY} L${xPeak} ${peakY} L${x0+step*0.8} ${baseY}`;
+    const dotColor = semPct >= 1 ? 'var(--monitor-green)' : 'rgba(111,220,154,0.35)';
+    dots += `<circle class="spike-dot" cx="${xPeak}" cy="${peakY}" r="3" fill="${dotColor}" onclick="document.querySelectorAll('.semester')[${idx}].scrollIntoView({behavior:'smooth',inline:'start'})"></circle>`;
+    dots += `<text class="spike-label" x="${xPeak}" y="${h-1}" text-anchor="middle">${sem.n}</text>`;
+  });
+  d += ` L${w} ${h-8}`;
+  svg.innerHTML = `<path d="${d}" fill="none" stroke="#6FDC9A" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/>` + dots;
+}
+
+function renderCatalog(){
+  const pillsWrap = document.getElementById('slotPills');
+  pillsWrap.innerHTML = OP_SLOTS.map(s=>{
+    const filled = opAssignment[s];
+    return `<span class="slot-pill ${filled?'filled':''}">${s}${filled? ' → '+CODE_TO_NAME[filled] : ' (livre)'}</span>`;
+  }).join('');
+
+  const grid = document.getElementById('electiveGrid');
+  const freeSlotAvailable = OP_SLOTS.some(s=>!opAssignment[s]);
+  grid.innerHTML = ELECTIVES.map(el=>{
+    const chosen = Object.values(opAssignment).includes(el.code);
+    const preMet = el.pre.every(p=>completed.has(p));
+    const canChoose = preMet && (freeSlotAvailable || chosen);
+    let preLine = el.pre.length
+      ? `<div class="elective-pre ${preMet?'met':'unmet'}">Pré-req.: ${el.pre.map(p=>CODE_TO_NAME[p]||p).join(', ')}</div>`
+      : '';
+    let btn;
+    if(chosen){
+      btn = `<button class="elective-btn on" onclick="unassignElective('${el.code}')">Em uso — remover</button>`;
+    }else if(!preMet){
+      btn = `<button class="elective-btn" disabled>Pré-requisito pendente</button>`;
+    }else if(!freeSlotAvailable){
+      btn = `<button class="elective-btn" disabled>Sem vaga livre</button>`;
+    }else{
+      btn = `<button class="elective-btn" onclick="assignElective('${el.code}')">Usar nesta vaga</button>`;
+    }
+    return `
+    <div class="elective ${chosen?'chosen':''} ${!canChoose && !chosen ? 'blocked':''}">
+      <div class="elective-top">
+        <span class="elective-code">${el.code}</span>
+        <span class="elective-ch">${el.ch}h</span>
+      </div>
+      <div class="elective-name">${el.name}</div>
+      ${preLine}
+      ${btn}
+    </div>`;
+  }).join('');
+}
+
+function render(){
+  renderBoard();
+  renderVitals();
+  renderCatalog();
+}
+
+document.getElementById('resetBtn').addEventListener('click', async ()=>{
+  if(!confirm('Isso vai apagar todo o progresso salvo. Continuar?')) return;
+  completed = new Set();
+  OP_SLOTS.forEach(s => opAssignment[s] = null);
+  await saveState();
+  render();
+});
+
+loadState();
+</script>
+</body>
+</html>
